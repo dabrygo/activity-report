@@ -29,10 +29,14 @@ action = input("What action? ")
 print(f"You spent {time_spent} hrs on '{contract}' doing '{action}' in order to achieve '{goal}'")
 
 file_exists = os.path.exists(DATA_FILE)
+if not file_exists:
+    record_id = 0
+else:
+    record_id = max(int(r['id']) for r in records) + 1
 with open(DATA_FILE, 'a', newline='') as f:
     writer = csv.writer(f)
     if not file_exists:
-        header = ['date', 'contract', 'time_spent', 'goal', 'action']
+        header = ['id', 'date', 'contract', 'time_spent', 'goal', 'action']
         writer.writerow(header)
     date_id = date.strftime("%Y%m%d")
-    writer.writerow([date_id, contract, time_spent, goal, action])
+    writer.writerow([record_id, date_id, contract, time_spent, goal, action])
