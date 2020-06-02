@@ -1,51 +1,48 @@
+import csv
+import datetime
+import os.path
 
-# Ask for total time
-PAY_PERIOD = 40 # hours
+DATA_FILE = "activity_report.dat"
 
-contracts = {}
+def load_data(file_=DATA_FILE):
+    if os.path.exists(file_):
+        with open(file_) as f:
+            reader = csv.DictReader(f)
+            return [row for row in reader]
+    return []
 
-###
-# Add a new contract
-###
-def add_contract():
-    # Ask for contract ID
-    contract_id = int(input("Enter new contract number:\n>>> "))
-    # Ask for contract name
-    contract_name = input("Enter contract name:\n>>> ")
-    # Ask for contract time percentage/allocation
-    expected_time = float(input(f"Enter time to spend on {contract_id}:\n>>> "))
-    contract = (contract_id, contract_name, expected_time)
-    contracts[contract_id] = contract
+option = int(input("What do you want to do?\n  1. Add entry\n  2. Make report\n>>> "))
+if option == 1:
+    date = datetime.datetime.now()
+    contract = input("Contract #: ")
+    time_spent = input("Time spent (hr): ")
 
+    records = load_data()
+    contracts = set(r['contract'] for r in records)
+    print(contracts)
+    if contract in contracts:
+        goals = set(r['goal'] for r in records if r['contract'] == contract)
+        print("Contract currently has these goals:")
+        for goal in goals:
+            print(f"  * {goal}")
+    goal = input("What goal? ")
 
-exit = False
+    action = input("What action? ")
+    print(f"You spent {time_spent} hrs on '{contract}' doing '{action}' in order to achieve '{goal}'")
 
-while not exit:
-    print('1. Add new contract\n2. Log time\n3. View Report\n4. Exit')
-    option = int(input(">>> "))
-
-    if option == 1:
-        add_contract()
-    elif option == 2:
-        # Ask for contract ID
-        worked_id = int(input("What is the contract number?\n>>> "))
-        # Ask for time spent
-        worked_time = float(input(f"How much time did you spend on {worked_id}?\n>>> "))
-
-        # Ask for goal
-        goal = input("What did you want to accomplish?\n>>> ")
-
-        # Ask for action
-        action = input("What steps did you take to meet your goal?\n>>> ")
-    elif option == 3:
-        # Emit report
-        worked_contract = contracts[worked_id]
-        worked_id, worked_name, expected_time = worked_contract
-        print("# Weekly Report")
-        print(f"## '{worked_id} - {worked_name}' (worked_time hours)")
-        print(f"* {goal}")
-        print(f"    + {action}")
-    elif option == 4:
-        exit = True
-
-# Save to file when done
+    file_exists = os.path.exists(DATA_FILE)
+    if not file_exists:
+        record_id = 0
+    else:
+        record_id = max(int(r['id']) for r in records) + 1
+    with open(DATA_FILE, 'a', newline='') as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            header = ['id', 'date', 'contract', 'time_spent', 'goal', 'action']
+            writer.writerow(header)
+        date_id = date.strftime("%Y%m%d")
+        writer.writerow([record_id, date_id, contract, time_spent, goal, action])
+elif option == 2:
+    pass
+else:
+    print(f"I don't recognize option '{option}'")
